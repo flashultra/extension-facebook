@@ -1,7 +1,7 @@
 package extension.facebook.android;
 
 import haxe.Json;
-import openfl.utils.JNI;
+import lime.system.JNI;
 
 @:build(ShortCuts.mirrors())
 class FacebookExtension {
@@ -19,15 +19,15 @@ class FacebookExtension {
 
 	static var callbacksObject : FacebookCallbacks;
 
-	public static function init(onTokenChange : String->Void) {
+	public static function init(onTokenChange : String->Void, appId : String) {
 		callbacksObject = new FacebookCallbacks();
 		callbacksObject.onTokenChange = onTokenChange;
 		var fn = JNI.createStaticMethod(
 			"org.haxe.extension.facebook.FacebookExtension",
 			"init",
-			"(Lorg/haxe/lime/HaxeObject;)V"
+			"(Lorg/haxe/lime/HaxeObject;Ljava/lang/String;)V"
 		);
-		JNI.callStatic(fn, [callbacksObject]);
+		JNI.callStatic(fn, [callbacksObject,appId]);
 	}
 
 	// Login callbacks

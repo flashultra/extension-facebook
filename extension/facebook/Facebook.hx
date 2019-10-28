@@ -47,11 +47,11 @@ class Facebook extends TaskExecutor {
 		super();
 	}
 
-	public function init(initCallback:Bool->Void) {
+	public function init(initCallback:Bool->Void, appId : String) {
 		if (!initted) {
 			#if (android || ios)
 			this.initCallback = initCallback;
-			FacebookCFFI.init(this.setAuthToken);
+			FacebookCFFI.init(this.setAuthToken, appId);
 			#end
 		}
 	}
@@ -360,7 +360,7 @@ class Facebook extends TaskExecutor {
 		);
 		#end
 	}
-
+	
 	public function setDebug()
 	{
 		#if (android || ios)
@@ -391,4 +391,5 @@ class Facebook extends TaskExecutor {
 			FacebookCFFI.logPurchase(purchaseAmount, currency, parameters);
 		#end
 	}
+
 }

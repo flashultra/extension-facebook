@@ -63,99 +63,14 @@ public class FacebookExtension extends Extension {
 	static ShareDialog shareDialog;
 	static AppEventsLogger logger;
 	static final String TAG = "FACEBOOK-EXTENSION";
+	static String APP_ID = "";
 
-	public FacebookExtension() {}
-
-	public static Object wrap(Object o) {
-		if (o == null) {
-			return null;
-		}
-		if (o instanceof JSONArray || o instanceof JSONObject) {
-			return o;
-		}
-		if (o.equals(null)) {
-			return o;
-		}
-		try {
-			if (o instanceof Collection) {
-				return new JSONArray((Collection) o);
-			} else if (o.getClass().isArray()) {
-				JSONArray arr = new JSONArray();
-				for (Object e : (Object[]) o) {
-					arr.put(e);
-				}
-				return arr;
-			}
-			if (o instanceof Map) {
-				return new JSONObject((Map) o);
-			}
-			if (o instanceof Boolean ||
-				o instanceof Byte ||
-				o instanceof Character ||
-				o instanceof Double ||
-				o instanceof Float ||
-				o instanceof Integer ||
-				o instanceof Long ||
-				o instanceof Short ||
-				o instanceof String) {
-				return o;
-			}
-			if (o.getClass().getPackage().getName().startsWith("java.")) {
-				return o.toString();
-			}
-		} catch (Exception ignored) {
-		}
-		return null;
+	public FacebookExtension() {
 	}
-
-	// Static methods interface
-
-
-
-	public static void init(HaxeObject _callbacks) {
-
-		callbacks = new SecureHaxeObject(_callbacks, mainActivity, TAG);
-		
-		try {
-			servicesInit();
-
-			accessTokenTracker = new AccessTokenTracker() {
-				@Override
-				protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
-					if (callbacks!=null) {
-						if (currentAccessToken!=null) {
-							callbacks.call1("_onTokenChange", currentAccessToken.getToken());
-						} else {
-							callbacks.call1("_onTokenChange", "");
-						}
-					}
-				}
-			};
-
-			mainActivity.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					try 
-					{
-						AccessToken token = AccessToken.getCurrentAccessToken();
-						if (token!=null) {
-							callbacks.call1("_onTokenChange", token.getToken());
-						} else {
-							callbacks.call1("_onTokenChange", "");
-						}
-					} catch (ExceptionInInitializerError error) {
-						callbacks.call1("_onTokenChange", "");
-					}
-				}
-			});
-		
-		} catch (ExceptionInInitializerError error) {
-			callbacks.call1("_onTokenChange", "");
-		}
-	}
-
-	private static void servicesInit() throws ExceptionInInitializerError
-	{
+	
+	private static void servicesInit() {
+		FacebookSdk.setApplicationId(APP_ID);
+		FacebookSdk.sdkInitialize(mainContext);
 		requestDialog = new GameRequestDialog(mainActivity);
 		shareDialog = new ShareDialog(mainActivity);
 
@@ -166,7 +81,7 @@ public class FacebookExtension extends Extension {
 		callbackManager = CallbackManager.Factory.create();
 		
 		logger = AppEventsLogger.newLogger(mainActivity);
-		
+
 		LoginManager.getInstance().registerCallback(callbackManager,
 
 			new FacebookCallback<LoginResult>() {
@@ -259,6 +174,96 @@ public class FacebookExtension extends Extension {
 			}
 
 		});
+
+	}
+
+	public static Object wrap(Object o) {
+		if (o == null) {
+			return null;
+		}
+		if (o instanceof JSONArray || o instanceof JSONObject) {
+			return o;
+		}
+		if (o.equals(null)) {
+			return o;
+		}
+		try {
+			if (o instanceof Collection) {
+				return new JSONArray((Collection) o);
+			} else if (o.getClass().isArray()) {
+				JSONArray arr = new JSONArray();
+				for (Object e : (Object[]) o) {
+					arr.put(e);
+				}
+				return arr;
+			}
+			if (o instanceof Map) {
+				return new JSONObject((Map) o);
+			}
+			if (o instanceof Boolean ||
+				o instanceof Byte ||
+				o instanceof Character ||
+				o instanceof Double ||
+				o instanceof Float ||
+				o instanceof Integer ||
+				o instanceof Long ||
+				o instanceof Short ||
+				o instanceof String) {
+				return o;
+			}
+			if (o.getClass().getPackage().getName().startsWith("java.")) {
+				return o.toString();
+			}
+		} catch (Exception ignored) {
+		}
+		return null;
+	}
+
+	// Static methods interface
+
+	public static void init(HaxeObject _callbacks, String appID) {
+		
+		APP_ID = appID;
+		
+		callbacks = new SecureHaxeObject(_callbacks, mainActivity, TAG);
+		
+		try {
+			servicesInit();
+
+			accessTokenTracker = new AccessTokenTracker() {
+				@Override
+				protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
+					if (callbacks!=null) {
+						if (currentAccessToken!=null) {
+							callbacks.call1("_onTokenChange", currentAccessToken.getToken());
+						} else {
+							callbacks.call1("_onTokenChange", "");
+						}
+					}
+				}
+			};
+
+			mainActivity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					try 
+					{
+						AccessToken token = AccessToken.getCurrentAccessToken();
+						if (token!=null) {
+							callbacks.call1("_onTokenChange", token.getToken());
+						} else {
+							callbacks.call1("_onTokenChange", "");
+						}
+					} catch (ExceptionInInitializerError error) {
+						callbacks.call1("_onTokenChange", "");
+					}
+				}
+			});
+			
+		} catch (ExceptionInInitializerError error) {
+			callbacks.call1("_onTokenChange", "");
+		}
+
 	}
 
 	public static void logout() {
@@ -443,14 +448,13 @@ public class FacebookExtension extends Extension {
 
 	}
 
-    private static Map<String, String> getPayloadFromJson(String jsonString) {
+	private static Map<String, String> getPayloadFromJson(String jsonString) {
         Type type = new TypeToken<Map<String, String>>(){}.getType();
         Map<String, String> payload = new Gson().fromJson(jsonString, type);
         return payload;
     }
-
-
-    private static Bundle getAnalyticsBundleFromJson(String jsonString) {
+	
+	private static Bundle getAnalyticsBundleFromJson(String jsonString) {
         Map<String, String> payloadMap = getPayloadFromJson(jsonString);
         Bundle payloadBundle = new Bundle();
         for (Map.Entry<String, String> entry : payloadMap.entrySet()) {
@@ -514,12 +518,12 @@ public class FacebookExtension extends Extension {
 	}
 
 	// !Static methods interface
-
+	
 	@Override public void onCreate (Bundle savedInstanceState) {
 
 		try {
 			PackageInfo info = mainContext.getPackageManager().getPackageInfo(
-                mainContext.getPackageName(),
+				mainContext.getPackageName(),
 				PackageManager.GET_SIGNATURES
 			);
 			for (Signature signature : info.signatures) {
