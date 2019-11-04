@@ -10,8 +10,6 @@ haxelib install extension-facebook
 
 Once this is done, you just need to add this to your project.xml
 ```xml
-<setenv name="FACEBOOK_APP_ID" value="7699999960641202" /> <!-- your facebook app ID -->
-<setenv name="FACEBOOK_DISPLAY_NAME" value="SuperGame!" /> <!-- your game name -->
 <haxelib name="extension-facebook" />
 ```
 
@@ -23,7 +21,7 @@ Login the user to Facebook if needed:
 import extension.facebook.Facebook;
 
 var facebook:Facebook = Facebook.getInstance();
-facebook.init(function(value:Bool){trace("Init Callback");});
+facebook.init(function(value:Bool){trace("Init Callback");},<YOUR_FACEBOOK_ID>);
 if (facebook.accessToken!="") { // Only login if the user is not already logged in
   onLoggedIn();
 } else {
